@@ -1,0 +1,143 @@
+service: vicove
+
+provider:
+  name: aws
+  region: eu-central-1
+  runtime: provided.al2
+  lambdaHashingVersion: 20201221
+
+plugins:
+  - ./vendor/bref/bref
+  - serverless-iam-roles-per-function
+
+functions:
+  api:
+    handler: src/app/route/api.php
+    description: 'API HTTP endpoint serving json data'
+    reservedConcurrency: 1 #reserved concurrency limit for this function.
+    memorySize: 128
+    timeout: 5
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+        Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/vicove"
+      - Effect: 'Allow'
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+        Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/vicove/index/title_bg_index"
+    events:
+      - httpApi: '*'
+    layers:
+      - ${bref:layer.php-80-fpm}
+  category-paginator-submit-queue:
+    handler: queue_category_submit_pagination.php
+    description: 'queue worker submitting categories for pagination to SQS'
+    timeout: 30
+    events:
+      - schedule: rate(30 days) # monthly
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - sqs:SendMessage
+        Resource: "arn:aws:sqs:${self:provider.region}:*:vicove-categories-pagination-queue"
+    layers:
+      - ${bref:layer.php-80}
+  category-paginator-queue:
+    handler: queue_category_paginator.php
+    description: 'queue worker processing SQS jobs to count per category pages and submit to parser queue'
+    timeout: 90
+    memorySize: 512
+    events:
+      - sqs:
+          arn: "arn:aws:sqs:${self:provider.region}:552724291356:vicove-categories-pagination-queue"
+          batchSize: 2
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+        Resource: "arn:aws:sqs:${self:provider.region}:552724291356:vicove-categories-pagination-queue"
+      - Effect: 'Allow'
+        Action:
+          - sqs:SendMessage
+          - sqs:ReceiveMessage
+        Resource: "arn:aws:sqs:eu-central-1:552724291356:vicove-queue"
+    layers:
+      - ${bref:layer.php-80}
+  vicove-parser-queue:
+    handler: queue_vicove_parser.php
+    reservedConcurrency: 2 #reserved concurrency limit for this function.
+    description: 'queue worker processing SQS jobs to parser jokes from page and save them into dynamodb'
+    timeout: 90
+    memorySize: 512
+    events:
+      - sqs:
+          arn: "arn:aws:sqs:eu-central-1:552724291356:vicove-queue"
+          batchSize: 4
+    iamRoleStatements:
+      - Effect: 'Allow'
+        Action:
+          - sqs:ReceiveMessage
+        Resource: "arn:aws:sqs:eu-central-1:552724291356:vicove-queue"
+      - Effect: 'Allow'
+        Action:
+          - dynamodb:PutItem
+        Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/vicove"
+    layers:
+      - ${bref:layer.php-80}
+
+
+resources:
+  Resources:
+    Vicove:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: vicove
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: title_bg
+            AttributeType: S
+        GlobalSecondaryIndexes:
+          - IndexName: title_bg_index
+            KeySchema:
+              - AttributeName: title_bg
+                KeyType: HASH
+            Projection:
+              ProjectionType: 'ALL'
+        BillingMode: PAY_PER_REQUEST
+        Tags:
+          - Key: Name
+            Value: VicovePreserve
+    VicoveCategoriesPaginationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: vicove-categories-pagination-queue
+        VisibilityTimeout: 100
+        MessageRetentionPeriod: 1209600 # 14 days
+        Tags:
+          - Key: Name
+            Value: VicovePreserve
+
+    VicoveQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: vicove-queue
+        VisibilityTimeout: 100
+        MessageRetentionPeriod: 1209600 # 14 days
+        Tags:
+          - Key: Name
+            Value: VicovePreserve
+
+
+
+# Exclude files from deployment
+package:
+  patterns:
+    - '!tests/**'

@@ -1,0 +1,36 @@
+{
+  "description": "POC using Serverless and Queue for tracking price changes on variety of websites",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Teodor",
+      "email": "teo.dragnev@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^8.0",
+    "aws/aws-sdk-php": "^3.209",
+    "bramus/router": "^1.6",
+    "bref/bref": "^1.5",
+    "fabpot/goutte": "^4.0",
+    "rappasoft/laravel-helpers": "^2.0",
+    "vlucas/phpdotenv": "^5.4"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  "autoload": {
+    "files": [
+      "src/app/helpers.php"
+    ],
+    "psr-4": {
+      "App\\": "src/app"
+    }
+  }
+}

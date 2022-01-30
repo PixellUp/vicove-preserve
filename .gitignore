@@ -1,0 +1,8 @@
+/.env
+/node_modules/
+/vendor/
+/.serverless/
+/composer.lock
+/yarn.lock
+/todo.md
+/src/app/Test.php
