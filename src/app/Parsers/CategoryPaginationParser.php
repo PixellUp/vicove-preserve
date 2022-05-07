@@ -45,5 +45,4 @@ class CategoryPaginationParser
     {
         return $this->numberOfPages;
     }
-
 }

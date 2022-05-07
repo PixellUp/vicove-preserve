@@ -1,0 +1,135 @@
+openapi: 3.1.0
+info:
+  title: Vicove Preserve
+  version: '1.0'
+  description: 'Bulgarian jokes - A easy to use API endpoint providing access to more then 100k jokes in different categories '
+servers:
+  - url: 'https://1cdek6bg7g.execute-api.eu-central-1.amazonaws.com'
+paths:
+  '/category/{category}':
+    parameters:
+      - schema:
+          type: string
+          example: Китай
+        name: category
+        in: path
+        required: true
+        description: title_bg category name from /categories
+    get:
+      summary: Get Category Info by category
+      tags: []
+      responses:
+        '200':
+          description: User Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+              examples:
+                Get User Alice Smith:
+                  value:
+                    id: 142
+                    firstName: Alice
+                    lastName: Smith
+                    email: alice.smith@gmail.com
+                    dateOfBirth: '1997-10-31'
+                    emailVerified: true
+                    signUpDate: '2019-08-24'
+      operationId: get-users-userId
+      description: Retrieve the information of the user with the matching user ID.
+  /:
+    get:
+      summary: Get all jokes
+      tags: []
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                description: ''
+                type: object
+                properties:
+                  items:
+                    type: array
+                    uniqueItems: true
+                    minItems: 1
+                    items:
+                      $ref: '#/components/schemas/Joke'
+                  cursor:
+                    type: string
+                    minLength: 1
+                    readOnly: true
+      operationId: get-jokes
+      description: Retrieve the jokes from random categories
+      parameters:
+        - schema:
+            type: string
+            example: Тираджии
+            minLength: 0
+          in: query
+          name: cursor
+          description: Cursor hash for next paginated page (case sensitive)
+    parameters: []
+  /categories:
+    get:
+      summary: Get all categories
+      tags: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+      operationId: get-categories
+      description: Get all categories
+components:
+  schemas:
+    Joke:
+      description: ''
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          readOnly: true
+        title_bg:
+          type: string
+          minLength: 1
+          readOnly: true
+        title_en:
+          type: string
+          minLength: 1
+          readOnly: true
+        joke:
+          type: string
+          minLength: 1
+          readOnly: true
+        url:
+          type: string
+          minLength: 1
+          format: uri
+          readOnly: true
+        created_at:
+          type: string
+          minLength: 1
+          format: date-time
+          readOnly: true
+    Category:
+      description: ''
+      type: object
+      properties:
+        title_bg:
+          type: string
+          minLength: 1
+        title_en:
+          type: string
+          minLength: 1
+        url:
+          type: string
+          minLength: 1
+          format: uri

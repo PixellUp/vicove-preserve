@@ -23,7 +23,7 @@ class Http
      */
     public static function get(string $url): Crawler
     {
-        return (new self)->send($url);
+        return (new self())->send($url);
     }
 
     /**

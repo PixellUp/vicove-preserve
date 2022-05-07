@@ -13,7 +13,5 @@ class OnPageVicoveParser
         return $page->filter('p.category-article')->each(function ($item) {
             return $item->html();
         });
-
     }
-
 }

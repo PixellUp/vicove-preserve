@@ -9,6 +9,11 @@ A easy to use API endpoint providing access to more then 100k jokes in different
 [Tiradzhii jokes](https://1cdek6bg7g.execute-api.eu-central-1.amazonaws.com/category/%D0%A2%D0%B8%D1%80%D0%B0%D0%B4%D0%B6%D0%B8%D0%B8)
 
 
+## Docs for the API
+
+[API Docs](https://public-storage-folder.s3.amazonaws.com/vicove/index.html#/operations/get-jokes)
+
+
 ## API Reference
 
 ### Base url

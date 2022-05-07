@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-
 use Aws\DynamoDb\DynamoDbClient;
 use Aws\DynamoDb\Marshaler;
 
@@ -122,7 +121,7 @@ abstract class Model
         }
 
         $class = "App\Models\\" . class_basename($this);
-        $model = new $class;
+        $model = new $class();
 
         foreach ((object)$this->marshaler->unmarshalItem($result) as $key => $value) {
             $model->$key = $value;
@@ -147,7 +146,6 @@ abstract class Model
             ]),
             'ReturnItemCollectionMetrics' => 'SIZE'
         ]);
-
     }
 
     public function save(): void
@@ -188,5 +186,4 @@ abstract class Model
 
         $this->printClassAction('Saved');
     }
-
 }
